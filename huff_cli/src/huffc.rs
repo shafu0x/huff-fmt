@@ -7,6 +7,7 @@ use generator::Generator;
 fn main() {
     // Instantiate a new lexer
     let source = r#"
+        #define constant S_SHIFT = 12
         #define macro _NAME_OF_FUNCTION() = takes(2) returns(0) {
            40
            40
@@ -37,6 +38,19 @@ fn main() {
         println!("{:?}", token);
 
         if token.kind == TokenKind::Define {
+            // constant
+            if &generator.peeks(0).unwrap().kind == &TokenKind::Constant {
+                if let TokenKind::Ident(ident) = &generator.peeks(1).unwrap().kind {
+                    if let TokenKind::Num(num) = &generator.peeks(3).unwrap().kind {
+                        formatted
+                            .push_str(&format!("{} constant {} = {}\n", token.kind, ident, num));
+                        generator.increment_index(4);
+                        println!("found");
+                    }
+                }
+            }
+
+            // macro
             if generator.peeks(0).unwrap().kind == TokenKind::Macro {
                 // start of macro
                 if let TokenKind::Ident(ident) = &generator.peeks(1).unwrap().kind {
@@ -45,9 +59,7 @@ fn main() {
 
                     formatted.push_str(&format!(
                         "#define macro {} = takes({}) returns({}) {{\n",
-                        ident,
-                        takes,
-                        returns,
+                        ident, takes, returns,
                     ));
 
                     generator.increment_index(14);
@@ -61,22 +73,12 @@ fn main() {
                     formatted.push_str(&format!("    {}\n", token.kind));
                 }
 
-
                 // end of macro
-                formatted.push_str(&format!( "}}\n",));
+                formatted.push_str(&format!("}}\n",));
             }
         }
     }
 
+    println!("");
     println!("{}", formatted);
-
-    // for token in generator {
-    //     if token.kind == TokenKind::Define {
-    // if generator.peek().unwrap().kind == TokenKind::Macro {
-    //     // if generator.peek().unwrap().kind == TokenKind::Ident {
-    //     //     println!("Found macro definition");
-    //     // }
-    // }
-    // }
-    // }
 }
