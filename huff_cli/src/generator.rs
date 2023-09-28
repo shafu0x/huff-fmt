@@ -15,20 +15,14 @@ impl Generator {
         self.tokens.get(self.index)
     }
 
+    pub fn peeks(&self, n: usize) -> Option<&Token> {
+        self.tokens.get(self.index + n)
+    }
+
     pub fn next_token(&mut self) -> Option<Token> {
         let token = self.tokens.get(self.index).cloned();
         self.index += 1;
         token
-    }
-
-    fn strip_whitespace(&mut self) {
-        while let Some(token) = self.peek() {
-            if token.kind == TokenKind::Whitespace {
-                self.index += 1;
-            } else {
-                break;
-            }
-        }
     }
 }
 
@@ -36,7 +30,6 @@ impl Iterator for Generator {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.strip_whitespace();
         self.next_token()
     }
 }
