@@ -11,7 +11,7 @@ fn main() {
         #define macro _NAME_OF_FUNCTION() = takes(2) returns(0) {
            40
            40
-           call
+           call          // fsdfdsf
            calldatacopy
         }
     "#;
