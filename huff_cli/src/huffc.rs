@@ -39,11 +39,13 @@ fn main() {
                     let returns = &generator.peeks(11).unwrap().kind;
 
                     formatted.push_str(&format!(
-                        "#define macro {} = takes({}) returns({}) ",
+                        "#define macro {} = takes({}) returns({}) {{",
                         ident,
                         takes,
                         returns,
                     ));
+
+                    generator.increment_index(15);
                 }
             }
         }
