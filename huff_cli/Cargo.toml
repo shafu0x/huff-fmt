@@ -13,10 +13,7 @@ keywords = ["huff", "rust", "evm", "bytecode", "compiler"]
 
 [dependencies]
 clap = { version = "3.1.18", features = ["derive"] }
-huff_core = { path = "../huff_core", version = "0.x.x" }
-huff_codegen = { path = "../huff_codegen", version = "0.x.x" }
 huff_utils = { path = "../huff_utils", version = "0.x.x" }
-huff_tests = { path = "../huff_tests", version = "0.x.x" }
 huff_lexer = { path = "../huff_lexer", version = "0.x.x" }
 comfy-table = "6.0.0"
 tracing = "0.1.34"
