@@ -8,6 +8,10 @@ fn main() {
     // Instantiate a new lexer
     let source = r#"
         #define macro _NAME_OF_FUNCTION() = takes(2) returns(0) {
+           40
+           40
+           call
+           calldatacopy
         }
     "#;
 
@@ -34,19 +38,32 @@ fn main() {
 
         if token.kind == TokenKind::Define {
             if generator.peeks(0).unwrap().kind == TokenKind::Macro {
+                // start of macro
                 if let TokenKind::Ident(ident) = &generator.peeks(1).unwrap().kind {
                     let takes = &generator.peeks(7).unwrap().kind;
                     let returns = &generator.peeks(11).unwrap().kind;
 
                     formatted.push_str(&format!(
-                        "#define macro {} = takes({}) returns({}) {{",
+                        "#define macro {} = takes({}) returns({}) {{\n",
                         ident,
                         takes,
                         returns,
                     ));
 
-                    generator.increment_index(15);
+                    generator.increment_index(14);
                 }
+
+                // in macro
+                while generator.peeks(0).unwrap().kind != TokenKind::CloseBrace {
+                    let token = generator.next().unwrap();
+                    // TODO: map opcode hex to name
+                    println!("{:?}", token);
+                    formatted.push_str(&format!("    {}\n", token.kind));
+                }
+
+
+                // end of macro
+                formatted.push_str(&format!( "}}\n",));
             }
         }
     }
