@@ -30,20 +30,26 @@ fn main() {
     let mut formatted = String::new();
 
     while let Some(token) = generator.next() {
-        // println!("{:?}", token);
+        println!("{:?}", token);
 
         if token.kind == TokenKind::Define {
             if generator.peeks(0).unwrap().kind == TokenKind::Macro {
-                 if let TokenKind::Ident(ident) = &generator.peeks(1).unwrap().kind {
-                    println!("Found a macro with name: {}", ident);
-                }
-                
+                if let TokenKind::Ident(ident) = &generator.peeks(1).unwrap().kind {
+                    let takes = &generator.peeks(7).unwrap().kind;
+                    let returns = &generator.peeks(11).unwrap().kind;
 
+                    formatted.push_str(&format!(
+                        "#define macro {} = takes({}) returns({}) ",
+                        ident,
+                        takes,
+                        returns,
+                    ));
+                }
             }
         }
     }
 
-    // println!("{}", formatted);
+    println!("{}", formatted);
 
     // for token in generator {
     //     if token.kind == TokenKind::Define {

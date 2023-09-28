@@ -24,6 +24,10 @@ impl Generator {
         self.index += 1;
         token
     }
+
+    pub fn increment_index(&mut self, n: usize) {
+        self.index += n;
+    }
 }
 
 impl Iterator for Generator {
