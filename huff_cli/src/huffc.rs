@@ -22,13 +22,8 @@ fn main() {
     let tokens: Vec<Token> = lexer.collect::<Result<_, _>>().unwrap();
 
     // remove the whitespace tokens
-    let tokens: Vec<Token> = tokens
-        .into_iter()
-        .filter(|token| match token.kind {
-            TokenKind::Whitespace => false,
-            _ => true,
-        })
-        .collect();
+    let tokens: Vec<Token> =
+        tokens.into_iter().filter(|token| !matches!(token.kind, TokenKind::Whitespace)).collect();
 
     let mut generator = Generator::new(tokens);
 
@@ -39,7 +34,7 @@ fn main() {
 
         if token.kind == TokenKind::Define {
             // constant
-            if &generator.peeks(0).unwrap().kind == &TokenKind::Constant {
+            if generator.peeks(0).unwrap().kind == TokenKind::Constant {
                 if let TokenKind::Ident(ident) = &generator.peeks(1).unwrap().kind {
                     if let TokenKind::Num(num) = &generator.peeks(3).unwrap().kind {
                         formatted
@@ -74,11 +69,11 @@ fn main() {
                 }
 
                 // end of macro
-                formatted.push_str(&format!("}}\n",));
+                formatted.push_str("}}\n");
             }
         }
     }
 
-    println!("");
+    println!();
     println!("{}", formatted);
 }
