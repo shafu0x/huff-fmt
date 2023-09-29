@@ -1,4 +1,3 @@
-use huff_lexer::Lexer;
 use huff_utils::prelude::*;
 
 pub struct Generator {
