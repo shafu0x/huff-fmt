@@ -25,13 +25,19 @@ fn parses_decorator() {
         let tok = lexer.next();
         let unwrapped = tok.unwrap().unwrap();
         let returns_span = Span::new(13..13, None);
-        assert_eq!(unwrapped, Token::new(TokenKind::Pound, returns_span.clone()));
+        assert_eq!(
+            unwrapped,
+            Token::new(TokenKind::Pound, returns_span.clone(), lexer.line_number())
+        );
 
         // [
         let tok = lexer.next();
         let unwrapped = tok.unwrap().unwrap();
         let returns_span = Span::new(14..14, None);
-        assert_eq!(unwrapped, Token::new(TokenKind::OpenBracket, returns_span.clone()));
+        assert_eq!(
+            unwrapped,
+            Token::new(TokenKind::OpenBracket, returns_span.clone(), lexer.line_number())
+        );
 
         // calldata
         let tok = lexer.next();
@@ -39,14 +45,21 @@ fn parses_decorator() {
         let returns_span = Span::new(15..22, None);
         assert_eq!(
             unwrapped,
-            Token::new(TokenKind::Ident(String::from("calldata")), returns_span.clone())
+            Token::new(
+                TokenKind::Ident(String::from("calldata")),
+                returns_span.clone(),
+                lexer.line_number()
+            )
         );
 
         // (
         let tok = lexer.next();
         let unwrapped = tok.unwrap().unwrap();
         let returns_span = Span::new(23..23, None);
-        assert_eq!(unwrapped, Token::new(TokenKind::OpenParen, returns_span.clone()));
+        assert_eq!(
+            unwrapped,
+            Token::new(TokenKind::OpenParen, returns_span.clone(), lexer.line_number())
+        );
 
         // 0x01
         let tok = lexer.next();
@@ -54,20 +67,30 @@ fn parses_decorator() {
         let returns_span = Span::new(26..27, None);
         assert_eq!(
             unwrapped,
-            Token::new(TokenKind::Literal(str_to_bytes32("01")), returns_span.clone())
+            Token::new(
+                TokenKind::Literal(str_to_bytes32("01")),
+                returns_span.clone(),
+                lexer.line_number()
+            )
         );
 
         // )
         let tok = lexer.next();
         let unwrapped = tok.unwrap().unwrap();
         let returns_span = Span::new(28..28, None);
-        assert_eq!(unwrapped, Token::new(TokenKind::CloseParen, returns_span.clone()));
+        assert_eq!(
+            unwrapped,
+            Token::new(TokenKind::CloseParen, returns_span.clone(), lexer.line_number())
+        );
 
         // ]
         let tok = lexer.next();
         let unwrapped = tok.unwrap().unwrap();
         let returns_span = Span::new(29..29, None);
-        assert_eq!(unwrapped, Token::new(TokenKind::CloseBracket, returns_span.clone()));
+        assert_eq!(
+            unwrapped,
+            Token::new(TokenKind::CloseBracket, returns_span.clone(), lexer.line_number())
+        );
 
         let _ = lexer.next(); // whitespace'
         let _ = lexer.next(); // define

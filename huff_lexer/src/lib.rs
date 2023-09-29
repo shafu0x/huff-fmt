@@ -668,6 +668,10 @@ impl<'a> Lexer<'a> {
         }
         imports
     }
+
+    pub fn line_number(&self) -> usize {
+        self.line_number
+    }
 }
 
 impl<'a> Iterator for Lexer<'a> {
