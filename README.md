@@ -6,5 +6,6 @@ Built for the huff hackathon.
 
 ## TODO:
 
-- map opcode hex to string
-- multiple opcodes per line
+- [x] map opcode hex to string
+- [x] multiple opcodes per line
+- [ ] format comment with indentation feature
