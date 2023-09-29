@@ -4,6 +4,9 @@ use huff_utils::prelude::*;
 mod generator;
 use generator::Generator;
 
+mod evm;
+use evm::OpcodeFormatted;
+
 fn main() {
     // Instantiate a new lexer
     let source = r#"
@@ -68,9 +71,14 @@ fn main() {
                 // in macro
                 while generator.peeks(0).unwrap().kind != TokenKind::CloseBrace {
                     let token = generator.next().unwrap();
-                    // TODO: map opcode hex to name
-                    println!("{:?}", token);
-                    formatted.push_str(&format!("    {}\n", token.kind));
+                    match token.kind {
+                        TokenKind::Opcode(opcode) => {
+                            formatted.push_str(&format!("    {}\n", opcode.format()));
+                        }
+                        _ => {
+                            formatted.push_str(&format!("    {}\n", token.kind.to_string()));
+                        }
+                    }
                 }
 
                 // end of macro
