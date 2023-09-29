@@ -9,7 +9,14 @@ fn parses_single_hex() {
 
     // The first and only token should be lexed as Literal(0xa57B)
     let tok = lexer.next().unwrap().unwrap();
-    assert_eq!(tok, Token::new(TokenKind::Literal(str_to_bytes32("a57B")), Span::new(2..5, None)));
+    assert_eq!(
+        tok,
+        Token::new(
+            TokenKind::Literal(str_to_bytes32("a57B")),
+            Span::new(2..5, None),
+            lexer.line_number()
+        )
+    );
 
     // We covered the whole source
     lexer.next();
@@ -24,13 +31,27 @@ fn parses_bool() {
 
     // The first token should be lexed as a Literal representing 0x00
     let tok = lexer.next().unwrap().unwrap();
-    assert_eq!(tok, Token::new(TokenKind::Literal(str_to_bytes32("0")), Span::new(0..4, None)));
+    assert_eq!(
+        tok,
+        Token::new(
+            TokenKind::Literal(str_to_bytes32("0")),
+            Span::new(0..4, None),
+            lexer.line_number()
+        )
+    );
 
     let _ = lexer.next(); // Whitespace
 
     // The second token should be lexed as a Literal representing 0x01
     let tok = lexer.next().unwrap().unwrap();
-    assert_eq!(tok, Token::new(TokenKind::Literal(str_to_bytes32("1")), Span::new(6..9, None)));
+    assert_eq!(
+        tok,
+        Token::new(
+            TokenKind::Literal(str_to_bytes32("1")),
+            Span::new(6..9, None),
+            lexer.line_number()
+        )
+    );
 
     // We covered the whole source
     lexer.next();
@@ -45,7 +66,14 @@ fn parses_odd_len_hex() {
 
     // The first and only token should be lexed as Literal(0x1)
     let tok = lexer.next().unwrap().unwrap();
-    assert_eq!(tok, Token::new(TokenKind::Literal(str_to_bytes32("1")), Span::new(2..2, None)));
+    assert_eq!(
+        tok,
+        Token::new(
+            TokenKind::Literal(str_to_bytes32("1")),
+            Span::new(2..2, None),
+            lexer.line_number()
+        )
+    );
 
     // We covered the whole source
     lexer.next();

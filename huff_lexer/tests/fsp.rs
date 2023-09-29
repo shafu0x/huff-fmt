@@ -9,13 +9,16 @@ fn free_storage_pointer() {
 
     // The first token should be the fsp
     let tok = lexer.next().unwrap().unwrap();
-    assert_eq!(tok, Token::new(TokenKind::FreeStoragePointer, Span::new(0..21, None)));
+    assert_eq!(
+        tok,
+        Token::new(TokenKind::FreeStoragePointer, Span::new(0..21, None), lexer.line_number())
+    );
 
     // Eats the whitespace
     let _ = lexer.next();
 
     let tok = lexer.next().unwrap().unwrap();
-    assert_eq!(tok, Token::new(TokenKind::Eof, Span::new(22..22, None)));
+    assert_eq!(tok, Token::new(TokenKind::Eof, Span::new(22..22, None), lexer.line_number()));
 
     // We should have reached EOF now
     assert!(lexer.eof);

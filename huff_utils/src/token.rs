@@ -10,12 +10,14 @@ pub struct Token {
     pub kind: TokenKind,
     /// An associated Span
     pub span: Span,
+    /// Line number of token
+    pub line_number: usize,
 }
 
 impl Token {
     /// Public associated function that instantiates a Token.
-    pub fn new(kind: TokenKind, span: Span) -> Self {
-        Self { kind, span }
+    pub fn new(kind: TokenKind, span: Span, line_number: usize) -> Self {
+        Self { kind, span, line_number }
     }
 }
 
@@ -133,13 +135,18 @@ pub enum TokenKind {
 
 impl TokenKind {
     /// Transform a single char TokenKind into a Token given a single position
-    pub fn into_single_span(self, position: u32) -> Token {
-        self.into_span(position, position)
+    pub fn into_single_span(self, position: u32, line_number: usize) -> Token {
+        self.into_span(position, position, line_number)
     }
 
     /// Transform a TokenKind into a Token given a start and end position
-    pub fn into_span(self, start: u32, end: u32) -> Token {
-        Token { kind: self, span: Span { start: start as usize, end: end as usize, file: None } }
+    /// TODO: Probably should rename into_token
+    pub fn into_span(self, start: u32, end: u32, line_number: usize) -> Token {
+        Token {
+            kind: self,
+            span: Span { start: start as usize, end: end as usize, file: None },
+            line_number,
+        }
     }
 }
 
@@ -190,7 +197,7 @@ impl fmt::Display for TokenKind {
                 for b in l.iter() {
                     let _ = write!(&mut s, "{b:02x}");
                 }
-                return write!(f, "{s}");
+                return write!(f, "{s}")
             }
             TokenKind::Opcode(o) => return write!(f, "{o}"),
             TokenKind::Label(s) => return write!(f, "{s}"),
@@ -201,7 +208,7 @@ impl fmt::Display for TokenKind {
                     let brackets = if size > &0 { format!("[{size}]") } else { "[]".to_string() };
                     s.push_str(&brackets);
                 }
-                return write!(f, "{pt}{s}");
+                return write!(f, "{pt}{s}")
             }
             TokenKind::JumpTable => "jumptable",
             TokenKind::JumpTablePacked => "jumptable__packed",

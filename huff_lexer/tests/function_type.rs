@@ -27,7 +27,7 @@ fn parses_function_type() {
         // Lex view first
         let tok = lexer.next().unwrap().unwrap();
         let type_span = Span::new(24..24 + fn_type.len() - 1, None);
-        assert_eq!(tok, Token::new(fn_type_kind, type_span.clone()));
+        assert_eq!(tok, Token::new(fn_type_kind, type_span.clone(), lexer.line_number()));
 
         let _ = lexer.next(); // whitespace
         let _ = lexer.next(); // returns
