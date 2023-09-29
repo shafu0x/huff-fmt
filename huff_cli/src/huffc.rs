@@ -22,11 +22,12 @@ fn main() {
     let flattened_source = FullFileSource { source, file: None, spans: vec![] };
     let lexer = Lexer::new(flattened_source.source);
 
-    let tokens: Vec<Token> = lexer.collect::<Result<_, _>>().unwrap();
-
     // remove the whitespace tokens
-    let tokens: Vec<Token> =
-        tokens.into_iter().filter(|token| !matches!(token.kind, TokenKind::Whitespace)).collect();
+    let tokens: Vec<Token> = lexer
+        .into_iter()
+        .map(|res| res.unwrap())
+        .filter(|token| !matches!(token.kind, TokenKind::Whitespace))
+        .collect();
 
     let mut generator = Generator::new(tokens);
 
