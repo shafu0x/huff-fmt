@@ -37,6 +37,7 @@ pub struct Lexer<'a> {
     /// WARN: SHOULD NEVER BE MODIFIED!
     pub chars: Peekable<Zip<Chars<'a>, RangeFrom<u32>>>,
     position: u32,
+    line_number: usize,
     /// The previous lexed Token.
     /// NOTE: Cannot be a whitespace.
     pub lookback: Option<Token>,
@@ -54,6 +55,7 @@ impl<'a> Lexer<'a> {
             // We zip with the character index here to ensure the first char has index 0
             chars: source.chars().zip(0..).peekable(),
             position: 0,
+            line_number: 0,
             lookback: None,
             eof: false,
             context: Context::Global,
@@ -87,7 +89,11 @@ impl<'a> Lexer<'a> {
                                 comment_string.push(ch2);
                                 let (comment_string, start, end) =
                                     self.eat_while(Some(ch), |c| c != '\n');
-                                Ok(TokenKind::Comment(comment_string).into_span(start, end))
+                                Ok(TokenKind::Comment(comment_string).into_span(
+                                    start,
+                                    end,
+                                    self.line_number,
+                                ))
                             }
                             '*' => {
                                 // ref: https://github.com/rust-lang/rust/blob/900c3540378c8422b8087ffa3db60fa6c8abfcad/compiler/rustc_lexer/src/lib.rs#L474
@@ -113,7 +119,7 @@ impl<'a> Lexer<'a> {
                                                 // there will be a successfully parsed block comment
                                                 // "/* */"
                                                 // and " */" will be processed separately.
-                                                break;
+                                                break
                                             }
                                         }
                                         _ => {
@@ -122,8 +128,11 @@ impl<'a> Lexer<'a> {
                                     }
                                 }
 
-                                Ok(TokenKind::Comment(comment_string)
-                                    .into_span(start, self.position))
+                                Ok(TokenKind::Comment(comment_string).into_span(
+                                    start,
+                                    self.position,
+                                    self.line_number,
+                                ))
                             }
                             _ => self.single_char_token(TokenKind::Div),
                         }
@@ -145,14 +154,14 @@ impl<'a> Lexer<'a> {
                         let peeked = word.clone();
                         if key == peeked {
                             found_kind = Some(kind);
-                            break;
+                            break
                         }
                     }
 
                     if let Some(kind) = &found_kind {
-                        Ok(kind.clone().into_span(start, end))
+                        Ok(kind.clone().into_span(start, end, self.line_number))
                     } else if self.context == Context::Global && self.peek().unwrap() == '[' {
-                        Ok(TokenKind::Pound.into_single_span(self.position))
+                        Ok(TokenKind::Pound.into_single_span(self.position, self.line_number))
                     } else {
                         // Otherwise we don't support # prefixed indentifiers
                         tracing::error!(target: "lexer", "INVALID '#' CHARACTER USAGE");
@@ -163,7 +172,7 @@ impl<'a> Lexer<'a> {
                                 end: self.position as usize,
                                 file: None,
                             },
-                        ));
+                        ))
                     }
                 }
                 // Alphabetical characters
@@ -195,14 +204,14 @@ impl<'a> Lexer<'a> {
                     ];
                     for kind in keys.into_iter() {
                         if self.context == Context::MacroBody {
-                            break;
+                            break
                         }
                         let key = kind.to_string();
                         let peeked = word.clone();
 
                         if key == peeked {
                             found_kind = Some(kind);
-                            break;
+                            break
                         }
                     }
 
@@ -348,15 +357,15 @@ impl<'a> Lexer<'a> {
 
                     let kind = if let Some(kind) = &found_kind {
                         kind.clone()
-                    } else if self.context == Context::MacroBody
-                        && BuiltinFunctionKind::try_from(&word).is_ok()
+                    } else if self.context == Context::MacroBody &&
+                        BuiltinFunctionKind::try_from(&word).is_ok()
                     {
                         TokenKind::BuiltinFunction(word)
                     } else {
                         TokenKind::Ident(word)
                     };
 
-                    Ok(kind.into_span(start, end))
+                    Ok(kind.into_span(start, end, self.line_number))
                 }
                 // If it's the start of a hex literal
                 ch if ch == '0' && self.peek().unwrap() == 'x' => self.eat_hex_digit(ch),
@@ -401,10 +410,16 @@ impl<'a> Lexer<'a> {
                 // identifiers
                 ',' => self.single_char_token(TokenKind::Comma),
                 '0'..='9' => self.eat_digit(ch),
-                // Lexes Spaces and Newlines as Whitespace
+                // Lexes Newlines as Whitespace
+                '\n' | '\r' => {
+                    let (_, start, end) = self.eat_whitespace();
+                    self.line_number += 1;
+                    Ok(TokenKind::Whitespace.into_span(start, end, self.line_number))
+                }
+                // Lexes Spaces and Newilnes as Whitespace
                 ch if ch.is_ascii_whitespace() => {
                     let (_, start, end) = self.eat_whitespace();
-                    Ok(TokenKind::Whitespace.into_span(start, end))
+                    Ok(TokenKind::Whitespace.into_span(start, end, self.line_number))
                 }
                 // String literals. String literals can also be wrapped by single quotes
                 '"' | '\'' => Ok(self.eat_string_literal()),
@@ -417,7 +432,7 @@ impl<'a> Lexer<'a> {
                             end: self.position as usize,
                             file: None,
                         },
-                    ));
+                    ))
                 }
             }?;
 
@@ -435,12 +450,13 @@ impl<'a> Lexer<'a> {
                     end: self.position as usize,
                     file: None,
                 },
+                line_number: self.line_number,
             })
         }
     }
 
     fn single_char_token(&self, token_kind: TokenKind) -> TokenResult {
-        Ok(token_kind.into_single_span(self.position))
+        Ok(token_kind.into_single_span(self.position, self.line_number))
     }
 
     /// Keeps consuming tokens as long as the predicate is satisfied
@@ -465,7 +481,7 @@ impl<'a> Lexer<'a> {
             // cursor If not, return word. The next character will be analyzed on the
             // next iteration of next_token, Which will increment the cursor
             if !predicate(peek_char) {
-                return (word, start, self.position);
+                return (word, start, self.position)
             }
             word.push(peek_char);
 
@@ -485,7 +501,7 @@ impl<'a> Lexer<'a> {
 
         let integer_token = TokenKind::Num(integer);
         let span = Span { start: start as usize, end: end as usize, file: None };
-        Ok(Token { kind: integer_token, span })
+        Ok(Token { kind: integer_token, span, line_number: self.line_number })
     }
 
     fn eat_hex_digit(&mut self, initial_char: char) -> TokenResult {
@@ -508,7 +524,7 @@ impl<'a> Lexer<'a> {
 
         start += 2;
         let span = Span { start: start as usize, end: end as usize, file: None };
-        Ok(Token { kind, span })
+        Ok(Token { kind, span, line_number: self.line_number })
     }
 
     /// Skips white space. They are not significant in the source language
@@ -521,7 +537,7 @@ impl<'a> Lexer<'a> {
             self.eat_while(None, |ch| ch != '"' && ch != '\'');
         let str_literal_token = TokenKind::Str(str_literal);
         self.consume(); // Advance past the closing quote
-        str_literal_token.into_span(start_span, end_span + 1)
+        str_literal_token.into_span(start_span, end_span + 1, self.line_number)
     }
 
     /// Checks the previous token kind against the input.
@@ -542,20 +558,20 @@ impl<'a> Lexer<'a> {
     ///   by a colon or preceded by the keyword `function`
     pub fn check_keyword_rules(&mut self, found_kind: &Option<TokenKind>) -> bool {
         match found_kind {
-            Some(TokenKind::Macro)
-            | Some(TokenKind::Fn)
-            | Some(TokenKind::Test)
-            | Some(TokenKind::Function)
-            | Some(TokenKind::Constant)
-            | Some(TokenKind::Error)
-            | Some(TokenKind::Event)
-            | Some(TokenKind::JumpTable)
-            | Some(TokenKind::JumpTablePacked)
-            | Some(TokenKind::CodeTable) => self.checked_lookback(TokenKind::Define),
-            Some(TokenKind::NonPayable)
-            | Some(TokenKind::Payable)
-            | Some(TokenKind::View)
-            | Some(TokenKind::Pure) => {
+            Some(TokenKind::Macro) |
+            Some(TokenKind::Fn) |
+            Some(TokenKind::Test) |
+            Some(TokenKind::Function) |
+            Some(TokenKind::Constant) |
+            Some(TokenKind::Error) |
+            Some(TokenKind::Event) |
+            Some(TokenKind::JumpTable) |
+            Some(TokenKind::JumpTablePacked) |
+            Some(TokenKind::CodeTable) => self.checked_lookback(TokenKind::Define),
+            Some(TokenKind::NonPayable) |
+            Some(TokenKind::Payable) |
+            Some(TokenKind::View) |
+            Some(TokenKind::Pure) => {
                 let keys = [
                     TokenKind::NonPayable,
                     TokenKind::Payable,
@@ -565,7 +581,7 @@ impl<'a> Lexer<'a> {
                 ];
                 for key in keys {
                     if self.checked_lookback(key) {
-                        return true;
+                        return true
                     }
                 }
                 false
@@ -594,7 +610,7 @@ impl<'a> Lexer<'a> {
                             // Iterate until newline
                             while let Some(lc) = &peekable_source.next() {
                                 if lc.eq(&'\n') {
-                                    break;
+                                    break
                                 }
                             }
                         } else if nnc.eq(&'*') {
@@ -603,7 +619,7 @@ impl<'a> Lexer<'a> {
                                 if lc.eq(&'*') {
                                     if let Some(llc) = peekable_source.peek() {
                                         if *llc == '/' {
-                                            break;
+                                            break
                                         }
                                     }
                                 }
@@ -618,7 +634,7 @@ impl<'a> Lexer<'a> {
                     // Skip over whitespace
                     while peekable_source.peek().is_some() {
                         if !peekable_source.peek().unwrap().is_whitespace() {
-                            break;
+                            break
                         } else {
                             peekable_source.next();
                         }
@@ -634,7 +650,7 @@ impl<'a> Lexer<'a> {
                                     if let Some(c) = peekable_source.next() {
                                         if matches!(c, '"' | '\'') {
                                             imports.push(import);
-                                            break;
+                                            break
                                         } else {
                                             import.push(c);
                                         }
@@ -646,7 +662,7 @@ impl<'a> Lexer<'a> {
                     }
                 } else if nc.ne(&include_chars_iterator.next().unwrap()) {
                     include_chars_iterator = "#include".chars().peekable();
-                    break;
+                    break
                 }
             }
         }

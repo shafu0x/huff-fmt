@@ -32,16 +32,26 @@ fn main() {
 
     let mut formatted = String::new();
 
+    let mut current_line_number = 0;
+
+    let mut check_new_line = |token_line_number, formatted: &mut String| {
+        if token_line_number > current_line_number {
+            current_line_number = token_line_number;
+            formatted.push('\n');
+        }
+    };
+
     while let Some(token) = generator.next() {
         println!("{:?}", token);
 
+        check_new_line(token.line_number, &mut formatted);
         if token.kind == TokenKind::Define {
             // constant
             if generator.peeks(0).unwrap().kind == TokenKind::Constant {
                 if let TokenKind::Ident(ident) = &generator.peeks(1).unwrap().kind {
                     if let TokenKind::Num(num) = &generator.peeks(3).unwrap().kind {
                         formatted
-                            .push_str(&format!("{} constant {} = {}\n", token.kind, ident, num));
+                            .push_str(&format!("{} constant {} = {}", &token.kind, ident, num));
                         generator.increment_index(4);
                         println!("found");
                     }
@@ -56,7 +66,7 @@ fn main() {
                     let returns = &generator.peeks(11).unwrap().kind;
 
                     formatted.push_str(&format!(
-                        "#define macro {} = takes({}) returns({}) {{\n",
+                        "#define macro {} = takes({}) returns({}) {{",
                         ident, takes, returns,
                     ));
 
@@ -66,18 +76,19 @@ fn main() {
                 // in macro
                 while generator.peeks(0).unwrap().kind != TokenKind::CloseBrace {
                     let token = generator.next().unwrap();
+                    check_new_line(token.line_number, &mut formatted);
                     match token.kind {
                         TokenKind::Opcode(opcode) => {
-                            formatted.push_str(&format!("    {}\n", opcode.format()));
+                            formatted.push_str(&format!("    {}", opcode.format()));
                         }
                         _ => {
-                            formatted.push_str(&format!("    {}\n", token.kind.to_string()));
+                            formatted.push_str(&format!("    {}", token.kind.to_string()));
                         }
                     }
                 }
 
                 // end of macro
-                formatted.push_str("}}\n");
+                formatted.push_str("\n}}\n");
             }
         }
     }
