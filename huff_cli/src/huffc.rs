@@ -1,3 +1,4 @@
+use clap::Parser;
 use huff_lexer::Lexer;
 use huff_utils::prelude::*;
 
@@ -7,19 +8,23 @@ use generator::Generator;
 mod evm;
 use evm::OpcodeFormatted;
 
-fn main() {
-    // Instantiate a new lexer
-    let source = r#"
-        #define constant S_SHIFT = 12
-        #define macro _NAME_OF_FUNCTION() = takes(2) returns(0) {
-           40
-           40
-           call          // fsdfdsf
-           calldatacopy
-        }
-    "#;
+use crate::opts::Opts;
 
-    let flattened_source = FullFileSource { source, file: None, spans: vec![] };
+mod opts;
+
+fn main() {
+    // parsing args
+    let opts = Opts::parse();
+
+    // Check if input is specified as path or passed directly as a string
+    let inputs = opts.inputs;
+    let source = if let Some(path) = inputs.path {
+        std::fs::read_to_string(&path).unwrap()
+    } else {
+        inputs.input.unwrap()
+    };
+
+    let flattened_source = FullFileSource { source: &source, file: None, spans: vec![] };
     let lexer = Lexer::new(flattened_source.source);
 
     // remove the whitespace tokens

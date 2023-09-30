@@ -12,7 +12,7 @@ Huff Language Compiler built in Pure Rust.
 keywords = ["huff", "rust", "evm", "bytecode", "compiler"]
 
 [dependencies]
-clap = { version = "3.1.18", features = ["derive"] }
+clap = { version = "4.4.6", features = ["derive"] }
 huff_utils = { path = "../huff_utils", version = "0.x.x" }
 huff_lexer = { path = "../huff_lexer", version = "0.x.x" }
 comfy-table = "6.0.0"
