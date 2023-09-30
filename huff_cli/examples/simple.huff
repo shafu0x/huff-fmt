@@ -1,0 +1,7 @@
+#define constant S_SHIFT = 12
+#define macro _NAME_OF_FUNCTION() = takes(2) returns(0) {
+   40
+   40
+   call          // fsdfdsf
+   calldatacopy
+}
