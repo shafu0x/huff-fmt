@@ -69,6 +69,19 @@ fn main() {
                 }
             }
 
+            // code table
+            if generator.peeks(0).unwrap().kind == TokenKind::CodeTable {
+                if let TokenKind::Ident(ident) = &generator.peeks(1).unwrap().kind {
+                    if let TokenKind::Ident(ident2) = &generator.peeks(3).unwrap().kind {
+                        formatted.push_str(&format!(
+                            "{} table {} {{ \n  {}\n}}",
+                            &token.kind, ident, ident2
+                        ));
+                        generator.increment_index(4);
+                    }
+                }
+            }
+
             // macro
             if generator.peeks(0).unwrap().kind == TokenKind::Macro {
                 // start of macro
