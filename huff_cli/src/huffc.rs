@@ -48,9 +48,16 @@ fn main() {
     };
 
     while let Some(token) = generator.next() {
-        println!("{:?}", token);
-
         check_new_line(token.line_number, &mut formatted);
+
+        // include
+        if token.kind == TokenKind::Include {
+            if let TokenKind::Str(string) = &generator.peeks(0).unwrap().kind {
+                // println!("Including {}", string);
+                formatted.push_str(&format!("#include \"{}\"", &string));
+            }
+        }
+
         if token.kind == TokenKind::Define {
             // constant
             if generator.peeks(0).unwrap().kind == TokenKind::Constant {
@@ -59,7 +66,6 @@ fn main() {
                         formatted
                             .push_str(&format!("{} constant {} = {}", &token.kind, ident, num));
                         generator.increment_index(4);
-                        println!("found");
                     }
                 }
             }
