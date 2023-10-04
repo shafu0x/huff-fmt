@@ -53,7 +53,6 @@ fn main() {
         // include
         if token.kind == TokenKind::Include {
             if let TokenKind::Str(string) = &generator.peeks(0).unwrap().kind {
-                // println!("Including {}", string);
                 formatted.push_str(&format!("#include \"{}\"", &string));
             }
         }
