@@ -15,7 +15,10 @@ impl Formatter<'_> {
 
     pub fn fmt(&mut self) {
         while let Some(token) = self.generator.next() {
-            self.is_new_line(&token);
+            // comment
+            if let TokenKind::Comment(s) = &token.kind {
+                // println!("comment: {}", s);
+            }
 
             // include
             if token.kind == TokenKind::Include {
@@ -39,6 +42,8 @@ impl Formatter<'_> {
                     self.fmt_macro();
                 }
             }
+
+            self.output.push('\n');
         }
     }
 
@@ -61,7 +66,7 @@ impl Formatter<'_> {
         if let TokenKind::Ident(ident) = &self.generator.peeks(1).unwrap().kind {
             if let TokenKind::Ident(ident2) = &self.generator.peeks(3).unwrap().kind {
                 self.output
-                    .push_str(&format!("{} table {} {{ \n  {}}}", &token.kind, ident, ident2));
+                    .push_str(&format!("{} table {} {{ \n  {}\n}}", &token.kind, ident, ident2));
                 self.generator.increment_index(4);
             }
         }
@@ -96,7 +101,7 @@ impl Formatter<'_> {
         }
 
         // end of macro
-        self.output.push_str("\n}}");
+        self.output.push_str("\n}");
     }
 
     fn is_new_line(&mut self, token: &Token) {

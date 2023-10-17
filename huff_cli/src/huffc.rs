@@ -35,6 +35,8 @@ fn main() {
         .filter(|token| !matches!(token.kind, TokenKind::Whitespace))
         .collect();
 
+    println!("{:#?}", tokens);
+
     let mut generator = Generator::new(tokens);
 
     let mut formatter = Formatter::new(&mut generator);

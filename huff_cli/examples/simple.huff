@@ -6,6 +6,13 @@
   0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000214d6178696d616c6c7920456666696369656e74205772617070656420457468657200000000000000000000000000000000000000000000000000000000000000
 }
 
+/**
+ * @dev Acts as an alias to `lt(a, b)`. Equivalent but more efficient to `and(iszero(a), b)`.
+ * @param:stack a Value that must be zero for the expression to be true, can be any non-zero value.
+ * @param:stack b Value that must be 0x1 for the expression to be true. Can lead to invalid results
+ * if not a lone bit.
+ * @return:stack res A 0 or 1 depending on whether the expression is true.
+ */
 #define macro _NAME_OF_FUNCTION() = takes(2) returns(0) {
    40
    40
