@@ -96,45 +96,6 @@ fn main() {
     let mut generator = Generator::new(tokens);
 
     let mut formatter = Formatter::new(&mut generator);
-
-    let mut formatted = String::new();
-
-    let mut current_line_number = 0;
-
-    let mut check_new_line = |token_line_number, formatted: &mut String| {
-        if token_line_number > current_line_number {
-            current_line_number = token_line_number;
-            formatted.push('\n');
-        }
-    };
-
-    while let Some(token) = generator.next() {
-        check_new_line(token.line_number, &mut formatted);
-
-        // include
-        if token.kind == TokenKind::Include {
-            fmt_include(&generator, &mut formatted);
-        }
-
-        if token.kind == TokenKind::Define {
-            // constant
-            if generator.peeks(0).unwrap().kind == TokenKind::Constant {
-                fmt_constant(&mut generator, &mut formatted, &token);
-            }
-
-            // code table
-            if generator.peeks(0).unwrap().kind == TokenKind::CodeTable {
-                fmt_code_table(&mut generator, &mut formatted, &token);
-            }
-
-            // macro
-            if generator.peeks(0).unwrap().kind == TokenKind::Macro {
-                fmt_macro(&mut generator, &mut formatted, &token);
-            }
-        }
-        formatted.push_str("\n");
-    }
-
-    println!();
-    println!("{}", formatted);
+    formatter.fmt();
+    println!("{}", formatter.output);
 }

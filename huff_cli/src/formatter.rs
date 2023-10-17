@@ -1,27 +1,102 @@
+use crate::evm::OpcodeFormatted;
 use crate::generator::Generator;
 use huff_utils::prelude::*;
 
 pub struct Formatter<'a> {
     current_line_number: usize,
-    generator: &'a Generator,
-    output: String,
+    generator: &'a mut Generator,
+    pub output: String,
 }
 
 impl Formatter<'_> {
-    pub fn new(generator: &Generator) -> Formatter {
+    pub fn new(generator: &mut Generator) -> Formatter {
         Formatter { current_line_number: 0, generator, output: String::new() }
     }
 
     pub fn fmt(&mut self) {
-        // while let Some(token) = generator.next() {
+        while let Some(token) = self.generator.next() {
+            self.is_new_line(&token);
 
-        // }
+            // include
+            if token.kind == TokenKind::Include {
+                self.fmt_include();
+            }
+
+            // define
+            if token.kind == TokenKind::Define {
+                // constant
+                if self.generator.peeks(0).unwrap().kind == TokenKind::Constant {
+                    self.fmt_constant(&token);
+                }
+
+                // code table
+                if self.generator.peeks(0).unwrap().kind == TokenKind::CodeTable {
+                    self.fmt_code_table(&token);
+                }
+
+                // macro
+                if self.generator.peeks(0).unwrap().kind == TokenKind::Macro {
+                    self.fmt_macro(&token);
+                }
+            }
+        }
     }
 
     fn fmt_include(&mut self) {
         if let TokenKind::Str(string) = &self.generator.peeks(0).unwrap().kind {
             self.output.push_str(&format!("#include \"{}\"", &string));
         }
+    }
+
+    fn fmt_constant(&mut self, token: &Token) {
+        if let TokenKind::Ident(ident) = &self.generator.peeks(1).unwrap().kind {
+            if let TokenKind::Num(num) = &self.generator.peeks(3).unwrap().kind {
+                self.output.push_str(&format!("{} constant {} = {}", token.kind, ident, num));
+                self.generator.increment_index(4);
+            }
+        }
+    }
+
+    fn fmt_code_table(&mut self, token: &Token) {
+        if let TokenKind::Ident(ident) = &self.generator.peeks(1).unwrap().kind {
+            if let TokenKind::Ident(ident2) = &self.generator.peeks(3).unwrap().kind {
+                self.output
+                    .push_str(&format!("{} table {} {{ \n  {}}}", &token.kind, ident, ident2));
+                self.generator.increment_index(4);
+            }
+        }
+    }
+
+    fn fmt_macro(&mut self, token: &Token) {
+        // start of macro
+        if let TokenKind::Ident(ident) = &self.generator.peeks(1).unwrap().kind {
+            let takes = &self.generator.peeks(7).unwrap().kind;
+            let returns = &self.generator.peeks(11).unwrap().kind;
+
+            self.output.push_str(&format!(
+                "#define macro {} = takes({}) returns({}) {{",
+                ident, takes, returns,
+            ));
+
+            self.generator.increment_index(14);
+        }
+
+        // in macro
+        while self.generator.peeks(0).unwrap().kind != TokenKind::CloseBrace {
+            let token = self.generator.next().unwrap();
+            self.is_new_line(&token);
+            match token.kind {
+                TokenKind::Opcode(opcode) => {
+                    self.output.push_str(&format!("    {}", opcode.format()));
+                }
+                _ => {
+                    self.output.push_str(&format!("    {}", token.kind.to_string()));
+                }
+            }
+        }
+
+        // end of macro
+        self.output.push_str("\n}}");
     }
 
     fn is_new_line(&mut self, token: &Token) {
