@@ -6,8 +6,6 @@ mod generator;
 use generator::Generator;
 
 mod evm;
-use evm::OpcodeFormatted;
-
 use crate::opts::Opts;
 
 mod opts;

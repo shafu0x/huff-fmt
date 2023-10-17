@@ -36,7 +36,7 @@ impl Formatter<'_> {
 
                 // macro
                 if self.generator.peeks(0).unwrap().kind == TokenKind::Macro {
-                    self.fmt_macro(&token);
+                    self.fmt_macro();
                 }
             }
         }
@@ -67,7 +67,7 @@ impl Formatter<'_> {
         }
     }
 
-    fn fmt_macro(&mut self, token: &Token) {
+    fn fmt_macro(&mut self) {
         // start of macro
         if let TokenKind::Ident(ident) = &self.generator.peeks(1).unwrap().kind {
             let takes = &self.generator.peeks(7).unwrap().kind;
