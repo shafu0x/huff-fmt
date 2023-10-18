@@ -90,13 +90,16 @@ impl Formatter<'_> {
         while self.generator.peeks(0).unwrap().kind != TokenKind::CloseBrace {
             let token = self.generator.next().unwrap();
             self.is_new_line(&token);
-            match token.kind {
-                TokenKind::Opcode(opcode) => {
-                    self.output.push_str(&format!("    {}", opcode.format()));
-                }
-                _ => {
-                    self.output.push_str(&format!("    {}", token.kind.to_string()));
-                }
+            match &token.kind {
+               TokenKind::Opcode(opcode) => {
+                   self.output.push_str(&format!("    {}", opcode.format()));
+               }
+               TokenKind::Comment(comment) => {
+                   self.output.push_str(&format!("    {}", comment));
+               }
+               _ => {
+                   self.output.push_str(&format!("    {}", token.kind.to_string()));
+               }
             }
         }
 
