@@ -16,8 +16,8 @@ impl Formatter<'_> {
     pub fn fmt(&mut self) {
         while let Some(token) = self.generator.next() {
             // comment
-            if let TokenKind::Comment(s) = &token.kind {
-                // println!("comment: {}", s);
+            if let TokenKind::Comment(comment) = &token.kind {
+                self.fmt_comment(comment);
             }
 
             // include
@@ -45,6 +45,10 @@ impl Formatter<'_> {
 
             self.output.push('\n');
         }
+    }
+
+    fn fmt_comment(&mut self, comment: &str) {
+        self.output.push_str(&format!("{}", comment));
     }
 
     fn fmt_include(&mut self) {
@@ -79,7 +83,7 @@ impl Formatter<'_> {
             let returns = &self.generator.peeks(11).unwrap().kind;
 
             self.output.push_str(&format!(
-                "#define macro {} = takes({}) returns({}) {{",
+                "#define macro {}() = takes({}) returns({}) {{",
                 ident, takes, returns,
             ));
 

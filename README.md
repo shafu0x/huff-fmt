@@ -2,7 +2,11 @@
 
 Format huff files.
 
-Built for the huff hackathon.
+## How to use
+
+```bash
+cargo run -- --path <INPUT_FILE>
+```
 
 ## TODO:
 
