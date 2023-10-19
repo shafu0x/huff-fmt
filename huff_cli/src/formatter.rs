@@ -15,32 +15,16 @@ impl Formatter<'_> {
 
     pub fn fmt(&mut self) {
         while let Some(token) = self.generator.next() {
-            // comment
-            if let TokenKind::Comment(comment) = &token.kind {
-                self.fmt_comment(comment);
-            }
-
-            // include
-            if token.kind == TokenKind::Include {
-                self.fmt_include();
-            }
-
-            // define
-            if token.kind == TokenKind::Define {
-                // constant
-                if self.generator.peeks(0).unwrap().kind == TokenKind::Constant {
-                    self.fmt_constant(&token);
-                }
-
-                // code table
-                if self.generator.peeks(0).unwrap().kind == TokenKind::CodeTable {
-                    self.fmt_code_table(&token);
-                }
-
-                // macro
-                if self.generator.peeks(0).unwrap().kind == TokenKind::Macro {
-                    self.fmt_macro();
-                }
+            match &token.kind {
+                TokenKind::Include => self.fmt_include(),
+                TokenKind::Define => match &self.generator.peeks(0).unwrap().kind {
+                    TokenKind::Constant => self.fmt_constant(&token),
+                    TokenKind::CodeTable => self.fmt_code_table(&token),
+                    TokenKind::Macro => self.fmt_macro(),
+                    _ => (),
+                },
+                TokenKind::Comment(comment) => self.fmt_comment(comment),
+                _ => (),
             }
 
             self.output.push('\n');
@@ -95,15 +79,15 @@ impl Formatter<'_> {
             let token = self.generator.next().unwrap();
             self.is_new_line(&token);
             match &token.kind {
-               TokenKind::Opcode(opcode) => {
-                   self.output.push_str(&format!("    {}", opcode.format()));
-               }
-               TokenKind::Comment(comment) => {
-                   self.output.push_str(&format!("    {}", comment));
-               }
-               _ => {
-                   self.output.push_str(&format!("    {}", token.kind.to_string()));
-               }
+                TokenKind::Opcode(opcode) => {
+                    self.output.push_str(&format!("    {}", opcode.format()));
+                }
+                TokenKind::Comment(comment) => {
+                    self.output.push_str(&format!("    {}", comment));
+                }
+                _ => {
+                    self.output.push_str(&format!("    {}", token.kind.to_string()));
+                }
             }
         }
 
