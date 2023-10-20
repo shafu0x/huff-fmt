@@ -15,3 +15,15 @@ impl CommentLexer {
         self.input.chars().nth(self.position)
     }
 }
+
+pub struct CommentToken {
+    pub kind: CommentTokenKind,
+    pub text: String,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum CommentTokenKind {
+    Comment,
+    Whitespace,
+    Newline,
+}
