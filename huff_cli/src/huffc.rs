@@ -13,6 +13,9 @@ mod opts;
 mod formatter;
 use formatter::Formatter;
 
+mod lexer;
+use lexer::CommentLexer;
+
 fn main() {
     // parsing args
     let opts = Opts::parse();
@@ -39,5 +42,5 @@ fn main() {
 
     let mut formatter = Formatter::new(&mut generator);
     formatter.fmt();
-    println!("{}", formatter.output);
+    // println!("{}", formatter.output);
 }

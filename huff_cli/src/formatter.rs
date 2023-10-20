@@ -1,6 +1,7 @@
 use crate::evm::OpcodeFormatted;
 use crate::generator::Generator;
 use huff_utils::prelude::*;
+use crate::CommentLexer;
 
 pub struct Formatter<'a> {
     current_line_number: usize,
@@ -33,6 +34,8 @@ impl Formatter<'_> {
 
     fn fmt_comment(&mut self, comment: &str) {
         self.output.push_str(&format!("{}", comment));
+        let lexer = CommentLexer::new(comment.to_string());
+        println!("{:?}", lexer.peek().unwrap());
     }
 
     fn fmt_include(&mut self) {
