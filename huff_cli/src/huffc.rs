@@ -8,13 +8,11 @@ use generator::Generator;
 mod evm;
 use crate::opts::Opts;
 
+mod lexer;
 mod opts;
 
 mod formatter;
 use formatter::Formatter;
-
-mod lexer;
-use lexer::CommentLexer;
 
 fn main() {
     // parsing args
