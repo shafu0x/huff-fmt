@@ -35,7 +35,9 @@ impl Formatter<'_> {
     fn fmt_comment(&mut self, comment: &str) {
         self.output.push_str(&format!("{}", comment));
         let lexer = CLexer::new(comment.to_string());
-        println!("{:?}", lexer.peek().unwrap());
+        for token in lexer {
+            println!("{:?}", token);
+        }
     }
 
     fn fmt_include(&mut self) {
